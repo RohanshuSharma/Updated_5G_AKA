@@ -353,13 +353,13 @@ int usim_api_authenticate(usim_data_t *usim_data, const OctetString* rand_pP, co
   /* Compute the anonymity key AK = f5K (RAND) */
 
   u8 ak[USIM_API_AK_SIZE];
-  f2345(usim_data->keys.usim_api_k, rand_pP->value,
-        res_pP->value, ck_pP->value, ik_pP->value, ak, usim_data->keys.opc);
+  u8 mk[8],rk[8],sk[8];
+  f2345_usim(usim_data->keys.usim_api_k, rand_pP->value,
+        res_pP->value, ck_pP->value, ik_pP->value, ak,mk,rk,sk,usim_data->keys.opc);
   LOG_TRACE(INFO, "USIM-API  - res(f2)  :%s",dump_octet_string(res_pP));
   LOG_TRACE(INFO, "USIM-API  - ck(f3)   :%s",dump_octet_string(ck_pP));
   LOG_TRACE(INFO, "USIM-API  - ik(f4)   :%s",dump_octet_string(ik_pP));
-  LOG_TRACE(INFO, "USIM-API  - ak(f5)   : %02X%02X%02X%02X%02X%02X",
-            ak[0],ak[1],ak[2],ak[3],ak[4],ak[5]);
+  LOG_TRACE(INFO, "USIM-API  - ak(f5)   : %02X%02X%02X%02X%02X%02X", ak[0],ak[1],ak[2],ak[3],ak[4],ak[5]);
 
   /* Retrieve the sequence number SQN = (SQN ⊕ AK) ⊕ AK */
 

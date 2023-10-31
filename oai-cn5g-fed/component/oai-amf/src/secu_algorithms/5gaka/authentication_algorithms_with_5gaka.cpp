@@ -27,6 +27,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctime>
 #include <string.h>
 
 #include "OCTET_STRING.h"
@@ -47,7 +48,7 @@ void Authentication_5gaka::f1(
   uint8_t out1[16];
   uint8_t rijndaelInput[16];
   uint8_t i;
-
+  clock_t start_time = clock();
   RijndaelKeySchedule(mk);
 
   for (i = 0; i < 16; i++) rijndaelInput[i] = _rand[i] ^ opc[i];
@@ -83,6 +84,9 @@ void Authentication_5gaka::f1(
   for (i = 0; i < 16; i++) out1[i] ^= opc[i];
 
   for (i = 0; i < 8; i++) mac_a[i] = out1[i];
+  clock_t end_time = clock();
+  double duration = (double)(end_time - start_time) / CLOCKS_PER_SEC * 1000.0;
+  Logger::amf_n1().debug("Execution time to derive MAC: %.2f milliseconds", duration);
 
   return;
 }
@@ -106,7 +110,7 @@ void Authentication_5gaka::f2345(
   uint8_t out[16];
   uint8_t rijndaelInput[16];
   uint8_t i;
-
+  clock_t start_time = clock();
   RijndaelKeySchedule(k);
 
   for (i = 0; i < 16; i++) rijndaelInput[i] = _rand[i] ^ opc[i];
@@ -175,6 +179,10 @@ void Authentication_5gaka::f2345(
   for (i = 0; i < 8; i++) rk[i] = out[i + 8];
 
   for (i = 0; i < 8; i++) sk[i] = out[i];
+
+  clock_t end_time = clock();
+  double duration = (double)(end_time - start_time) / CLOCKS_PER_SEC * 1000.0;
+  Logger::amf_n1().debug("Execution time to derive AK, MK, RK AND SK: %.2f milliseconds", duration);
 
   return;
 } /* end of function f2345 */
@@ -327,6 +335,7 @@ void Authentication_5gaka::kdf(
 
 void Authentication_5gaka::derive_kseaf(
     std::string serving_network, uint8_t kausf[32], uint8_t kseaf[32]) {
+      clock_t start_time = clock();
   Logger::amf_n1().debug("derive_kseaf ...");
   // Logger::amf_n1().debug("inputstring: snn(%s)", serving_network.c_str());
   OCTET_STRING_t netName;
@@ -345,6 +354,29 @@ void Authentication_5gaka::derive_kseaf(
   kdf(kausf, 32, S, 3 + netName.size, kseaf, 32);
   // comUt::print_buffer("amf_n1", "KDF out: Kseaf", kseaf, 32);
   // Logger::amf_n1().debug("derive kseaf finished!");
+  uint8_t S_hk_key[100];
+  uint8_t hk_key[32];
+  // Adjust the function code or include other parameters if needed
+  S_hk_key[0] = 0x7D;  // Adjusted FC for hk_key derivation
+  memcpy(&S_hk_key[1], netName.buf, netName.size);
+  S_hk_key[1 + netName.size] = (uint8_t)((netName.size & 0xff00) >> 8);
+  S_hk_key[2 + netName.size] = (uint8_t)(netName.size & 0x00ff);
+
+  // Call the key derivation function (kdf) to derive hk_key from kausf and S_hk_key
+  kdf(kseaf, 32, S_hk_key, 3 + netName.size, hk_key, 32);
+  clock_t end_time = clock();
+  double duration = static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC * 1000.0;
+  Logger::amf_n1().debug("Execution time to derive HK and Kseaf: %.2f milliseconds", duration);
+
+   // Log debugging information
+  Logger::amf_n1().debug("Derived kseaf:");
+  comUt::print_buffer("amf_n1", "kseaf", kseaf, 32);
+
+  Logger::amf_n1().debug("Derived hk_key:");
+  comUt::print_buffer("amf_n1", "hk_key", hk_key, 32);
+
+  Logger::amf_n1().debug("derive kseaf_and_hk_key finished!");
+
 }
 
 void Authentication_5gaka::derive_kausf(

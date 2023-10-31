@@ -41,6 +41,7 @@
 #include "as_message.h"
 #include "FGSUplinkNasTransport.h"
 #include <openair3/UICC/usim_interface.h>
+#include <time.h>
 
 #define PLAIN_5GS_MSG                                      0b0000
 #define INTEGRITY_PROTECTED                                0b0001
@@ -90,6 +91,9 @@ typedef struct {
   uicc_t *uicc;
   ue_sa_security_key_t security;
   Guti5GSMobileIdentity_t *guti;
+  clock_t start_time;
+  clock_t end_time;
+  uint8_t random_r_ue[8];
 } nr_ue_nas_t;
 
 typedef enum fgs_protocol_discriminator_e {

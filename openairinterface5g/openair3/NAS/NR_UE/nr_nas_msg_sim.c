@@ -307,6 +307,8 @@ void derive_kausf(uint8_t ck[16], uint8_t ik[16], uint8_t sqn[6], uint8_t kausf[
 
 void derive_kseaf(uint8_t kausf[32], uint8_t kseaf[32], uicc_t *uicc) {
   uint8_t S[100]={0};
+  uint8_t hk_key[32];
+  clock_t start_time = clock();
   S[0] = 0x6C;  //FC
   servingNetworkName (S+1, uicc->imsiStr, uicc->nmc_size);
   int netNamesize = strlen((char*)S+1);
@@ -315,6 +317,14 @@ void derive_kseaf(uint8_t kausf[32], uint8_t kseaf[32], uicc_t *uicc) {
 
   byte_array_t data = {.buf = S , .len = 3 + netNamesize};
   kdf(kausf, data, 32, kseaf);
+
+ S[0] = 0x7D; // Adjusted FC for hk_key derivation
+ kdf(kseaf, data, 32, hk_key);
+  clock_t end_time = clock();
+  double duration = ((double)(end_time - start_time)) / CLOCKS_PER_SEC * 1000.0;
+
+  // Print or log the total execution time
+  printf("Execution Time to generate HK and Kseaf: %.2f milliseconds\n", duration);
 }
 
 void derive_kamf(uint8_t *kseaf, uint8_t *kamf, uint16_t abba, uicc_t* uicc) {
@@ -405,7 +415,8 @@ void derive_ue_keys(uint8_t *buf, nr_ue_nas_t *nas) {
 
   uint8_t resTemp[16];
   uint8_t ck[16], ik[16];
-  f2345(nas->uicc->key, rand, resTemp, ck, ik, ak, nas->uicc->opc);
+  uint8_t mk[8],rk[8],sk[8];
+  f2345(nas->uicc->key, rand, resTemp, ck, ik, ak,mk,rk,sk,nas->random_r_ue, nas->uicc->opc);
 
   transferRES(ck, ik, resTemp, rand, output, nas->uicc);
 
@@ -478,6 +489,7 @@ void generateRegistrationRequest(as_nas_info_t *initialNasMsg, nr_ue_nas_t *nas)
     size += fill_guti(&mm_msg->registration_request.fgsmobileidentity, nas->guti);
   } else {
     size += fill_suci(&mm_msg->registration_request.fgsmobileidentity, nas->uicc);
+    memcpy(nas->random_r_ue, mm_msg->registration_request.fgsmobileidentity.suci.random_r, sizeof(nas->random_r_ue));
     printf("2 of 3 RAB");
   }
 
