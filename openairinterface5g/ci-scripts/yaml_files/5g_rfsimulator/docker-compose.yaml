@@ -186,8 +186,8 @@ services:
         container_name: rfsim5g-oai-nr-ue
         environment: 
             USE_ADDITIONAL_OPTIONS: -E --sa --rfsim -r 106 --numerology 1 --uicc0.imsi 208990100001100 -C 3619200000 --rfsimulator.serveraddr 192.168.71.140 --log_config.global_log_options level,nocolor,time
-        depends_on:
-            - oai-gnb
+        #depends_on:
+           # - oai-gnb
         networks:
             public_net:
                 ipv4_address: 192.168.71.150
@@ -198,6 +198,8 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+       # ports:
+        #    - 143.167.97.11:4043:4043
 
     oai-nr-ue2:
         image: oaisoftwarealliance/oai-nr-ue:develop

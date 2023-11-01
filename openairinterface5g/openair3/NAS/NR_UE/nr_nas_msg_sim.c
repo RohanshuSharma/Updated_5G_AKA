@@ -306,6 +306,7 @@ void derive_kausf(uint8_t ck[16], uint8_t ik[16], uint8_t sqn[6], uint8_t kausf[
 }
 
 void derive_kseaf(uint8_t kausf[32], uint8_t kseaf[32], uicc_t *uicc) {
+
   uint8_t S[100]={0};
   uint8_t hk_key[32];
   clock_t start_time = clock();
@@ -454,6 +455,10 @@ void derive_ue_keys(uint8_t *buf, nr_ue_nas_t *nas) {
     printf("%x ", knas_int[i]);
   }
   printf("\n");
+
+  nas->end_time = clock();
+  double duration = ((double)(nas->end_time - nas->start_time)) / CLOCKS_PER_SEC * 1000.0;
+  printf("Total Execution time taken: %.2f milliseconds\n", duration);
 }
 
 nr_ue_nas_t *get_ue_nas_info(module_id_t module_id)
@@ -490,6 +495,7 @@ void generateRegistrationRequest(as_nas_info_t *initialNasMsg, nr_ue_nas_t *nas)
   } else {
     size += fill_suci(&mm_msg->registration_request.fgsmobileidentity, nas->uicc);
     memcpy(nas->random_r_ue, mm_msg->registration_request.fgsmobileidentity.suci.random_r, sizeof(nas->random_r_ue));
+    nas->start_time = clock();
     printf("2 of 3 RAB");
   }
 

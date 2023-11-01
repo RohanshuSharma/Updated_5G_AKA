@@ -134,6 +134,10 @@ void Authentication_5gaka::f2345(
   for (i = 0; i < 8; i++) mk[i] = out[i + 8];
 
   for (i = 0; i < 6; i++) ak[i] = out[i];
+
+  clock_t end_time = clock();
+  double duration = (double)(end_time - start_time) / CLOCKS_PER_SEC * 1000.0;
+  Logger::amf_n1().debug("Execution time to derive AK and MK: %.2f milliseconds", duration);
   /*
    * To obtain output block OUT3: XOR OPc and TEMP,
    * * * * rotate by r3=32, and XOR on the constant c3 (which *
@@ -163,6 +167,7 @@ void Authentication_5gaka::f2345(
 
   for (i = 0; i < 16; i++) ik[i] = out[i];
 
+ clock_t start_time2 = clock();
 
   RijndaelKeySchedule(ak);
 
@@ -180,9 +185,9 @@ void Authentication_5gaka::f2345(
 
   for (i = 0; i < 8; i++) sk[i] = out[i];
 
-  clock_t end_time = clock();
-  double duration = (double)(end_time - start_time) / CLOCKS_PER_SEC * 1000.0;
-  Logger::amf_n1().debug("Execution time to derive AK, MK, RK AND SK: %.2f milliseconds", duration);
+  clock_t end_time2 = clock();
+  double duration2 = (double)(end_time2 - start_time2) / CLOCKS_PER_SEC * 1000.0;
+  Logger::amf_n1().debug("Execution time to derive RK AND SK: %.2f milliseconds", duration2);
 
   return;
 } /* end of function f2345 */

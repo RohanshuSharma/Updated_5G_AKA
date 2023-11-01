@@ -85,6 +85,10 @@ class nas_context {
   // mobility identity: imsi, supi, 5g-guti, etc
   // RAB edit start
   uint8_t random_r[8];
+  clock_t main_start_time;
+  clock_t main_end_time;
+  clock_t comm_start_time;
+  clock_t comm_end_time;
 
   // RAB edit stop
   std::string imsi;

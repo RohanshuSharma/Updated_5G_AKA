@@ -601,6 +601,7 @@ void amf_n1::nas_signalling_establishment_request_handle(
 
   switch (message_type) {
     case REGISTRATION_REQUEST: {
+      nc->main_start_time = clock();
       Logger::amf_n1().debug(
           "Received Registration Request message, handling...");
       registration_request_handle(
@@ -2166,6 +2167,7 @@ bool amf_n1::start_authentication_procedure(
   uint8_t* rand = nc->_5g_av[vindex].rand;
   if (rand) auth_request->setAuthentication_Parameter_RAND(rand);
   Logger::amf_n1().debug("Sending Authentication Request with RAND");
+  nc->comm_start_time = clock();
   printf("0x");
   for (int i = 0; i < 16; i++) printf("%x", rand[i]);
   printf("\n");
@@ -2216,7 +2218,9 @@ void amf_n1::authentication_response_handle(
     const uint32_t ran_ue_ngap_id, const long amf_ue_ngap_id,
     bstring plain_msg) {
   std::shared_ptr<nas_context> nc = {};
-
+  nc->comm_end_time = clock();
+  double duration2 = (double)(end_time2 - start_time2) / CLOCKS_PER_SEC * 1000.0;
+  Logger::amf_n1().debug("Communication time taken: %.2f milliseconds", duration2);
   if (!is_amf_ue_id_2_nas_context(amf_ue_ngap_id, nc)) {
     Logger::amf_n1().error(
         "No existed NAS context for UE with amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT,
@@ -2297,6 +2301,9 @@ void amf_n1::authentication_response_handle(
     return;
   } else {
     Logger::amf_n1().debug("Authentication successful by network!");
+    nc->main_end_time = clock();
+    double duration = (double)(nc->main_end_time - nc->main_start_time) / CLOCKS_PER_SEC * 1000.0;
+    Logger::amf_n1().debug("Execution time for authentication: %.2f milliseconds", duration);
     // Fix to work with ng4T
     // TODO: To verify UE/AMF behavior according to 3GPP TS 24.501
     // if (!nc->is_current_security_available) {
