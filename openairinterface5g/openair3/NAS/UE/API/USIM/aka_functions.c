@@ -166,7 +166,7 @@ void f2345 ( u8 k_pP[16], u8 rand_pP[16],
 
   end_time = clock();
   cpu_time_used = ((double)(end_time - start_time) * 1000) / CLOCKS_PER_SEC; // Convert to milliseconds
-  printf("Execution time for calculating AK and MK: %f milliseconds\n", cpu_time_used)
+  printf("Execution time for calculating AK and MK: %f milliseconds\n", cpu_time_used);
 
   LOG_TRACE(INFO,
             "USIM-API  - f2345 : out f2 res[0..7]=%02X%02X%02X%02X%02X%02X%02X%02X",

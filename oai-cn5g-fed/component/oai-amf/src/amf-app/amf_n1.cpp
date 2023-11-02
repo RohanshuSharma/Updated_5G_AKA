@@ -2219,7 +2219,7 @@ void amf_n1::authentication_response_handle(
     bstring plain_msg) {
   std::shared_ptr<nas_context> nc = {};
   nc->comm_end_time = clock();
-  double duration2 = (double)(end_time2 - start_time2) / CLOCKS_PER_SEC * 1000.0;
+  double duration2 = (double)(nc->comm_end_time - nc->comm_start_time) / CLOCKS_PER_SEC * 1000.0;
   Logger::amf_n1().debug("Communication time taken: %.2f milliseconds", duration2);
   if (!is_amf_ue_id_2_nas_context(amf_ue_ngap_id, nc)) {
     Logger::amf_n1().error(
