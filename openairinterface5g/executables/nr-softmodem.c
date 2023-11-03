@@ -696,10 +696,13 @@ int main( int argc, char **argv ) {
   
   // OAI Wrapper 
   e2_agent_args_t oai_args = RCconfig_NR_E2agent();
-  AssertFatal(oai_args.sm_dir != NULL , "Please, specify the directory where the SMs are located in the config file, i.e., e2_agent = {near_ric_ip_addr = \"127.0.0.1\"; sm_dir = \"/usr/local/lib/flexric/\");} ");
+  AssertFatal(oai_args.sm_dir != NULL , "Please, specify the directory where the SMs are located in the config file, i.e., add in config file the next line: e2_agent = {near_ric_ip_addr = \"127.0.0.1\"; sm_dir = \"/usr/local/lib/flexric/\");} ");
+
   AssertFatal(oai_args.ip != NULL , "Please, specify the IP address of the nearRT-RIC in the config file, i.e., e2_agent = {near_ric_ip_addr = \"127.0.0.1\"; sm_dir = \"/usr/local/lib/flexric/\"");
 
-  fr_args_t args = {.ip = oai_args.ip}; // init_fr_args(0, NULL);
+  printf("After RCconfig_NR_E2agent %s %s \n",oai_args.sm_dir, oai_args.ip  );
+
+  fr_args_t args = { .ip = oai_args.ip }; // init_fr_args(0, NULL);
   memcpy(args.libs_dir, oai_args.sm_dir, 128);
 
   sleep(1);
@@ -709,7 +712,7 @@ int main( int argc, char **argv ) {
   const int mcc = rrc->configuration.mcc[0];
   const int mnc = rrc->configuration.mnc[0];
   const int mnc_digit_len = rrc->configuration.mnc_digit_length[0];
-  const ngran_node_t node_type = rrc->node_type;
+  // const ngran_node_t node_type = rrc->node_type;
   int nb_id = 0;
   int cu_du_id = 0;
   if (node_type == ngran_gNB) {
@@ -726,6 +729,7 @@ int main( int argc, char **argv ) {
      
   printf("[E2 NODE]: mcc = %d mnc = %d mnc_digit = %d nb_id = %d \n", mcc, mnc, mnc_digit_len, nb_id);
 
+  printf("[E2 NODE]: Args %s %s \n", args.ip, args.libs_dir);
   init_agent_api(mcc, mnc, mnc_digit_len, nb_id, cu_du_id, node_type, io, &args);
 //   }
 

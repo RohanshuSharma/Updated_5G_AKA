@@ -31,7 +31,7 @@ services:
                 ipv4_address: 192.168.71.131
     oai-amf:
         container_name: "rfsim5g-oai-amf"
-        image: oai-amf:v1.5.1
+        image: oaisoftwarealliance/oai-amf:v1.5.0
         environment:
             - TZ=Europe/paris
             - MCC=208
@@ -173,6 +173,8 @@ services:
         networks:
             public_net:
                 ipv4_address: 192.168.71.140
+            traffic_net:
+                ipv4_address: 192.168.72.140
         volumes:
             - ../../conf_files/gnb.sa.band78.106prb.rfsim.conf:/opt/oai-gnb/etc/gnb.conf
         healthcheck:
@@ -181,16 +183,17 @@ services:
             timeout: 5s
             retries: 5
     oai-nr-ue:
-        image: oai-nr-ue:latest #oaisoftwarealliance/oai-nr-ue:latest #develop
+        image: oaisoftwarealliance/oai-nr-ue:develop
         privileged: true
         container_name: rfsim5g-oai-nr-ue
         environment: 
-            USE_ADDITIONAL_OPTIONS: -E --sa --rfsim -r 106 --numerology 1 --uicc0.imsi 208990100001100 -C 3619200000 --rfsimulator.serveraddr 192.168.71.140 --log_config.global_log_options level,nocolor,time
-        #depends_on:
-           # - oai-gnb
+            USE_ADDITIONAL_OPTIONS: -E --sa --rfsim -r 106 --numerology 1 --uicc0.imsi 208990100001100 -C 3619200000 --rfsimulator.serveraddr 143.167.25.81 --log_config.global_log_options level,nocolor,time
+       # depends_on:
+        #    - oai-gnb
         networks:
             public_net:
                 ipv4_address: 192.168.71.150
+            
         volumes:
             - ../../conf_files/nrue.uicc.conf:/opt/oai-nr-ue/etc/nr-ue.conf
         healthcheck:
@@ -198,8 +201,8 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
-       # ports:
-        #    - 143.167.97.51:4043:4043
+        ports:
+          - 143.167.98.82:4043:4043
 
     oai-nr-ue2:
         image: oaisoftwarealliance/oai-nr-ue:develop

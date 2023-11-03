@@ -233,6 +233,8 @@ compilations() {
     $CMAKE --build . $verbose --target $targets -- -j$(nproc)
     ret=$?
   } > $dlog/$logfile 2>&1
+  # Print the errors and warnings for CI purposes
+  egrep -A3 "warning:|error:" $dlog/$logfile || true
   check_warnings "$dlog/$logfile"
   if [[ $ret -eq 0 ]]; then
      echo_success "$targets compiled"
@@ -319,8 +321,7 @@ check_install_usrp_uhd_driver(){
         $SUDO apt-get remove libuhd3.15.0 -y || true
         local distribution=$(get_distribution_release)
         if [[ "$distribution" == "ubuntu18.04" || "$distribution" == "ubuntu20.04" || "$distribution" == "ubuntu22.04" ]]; then
-            $SUDO apt-get remove libuhd4.0.0 -y || true
-            $SUDO apt-get remove libuhd4.1.0 -y || true
+            $SUDO apt-get remove libuhd4.?.? -y || true
         fi
         v=$(lsb_release -cs)
         $SUDO apt-add-repository --remove "deb http://files.ettus.com/binaries/uhd/repo/uhd/ubuntu/$v $v main"
@@ -350,7 +351,7 @@ check_install_usrp_uhd_driver(){
         $SUDO apt-get -y install python-tk  $boost_libs_ubuntu libusb-1.0-0-dev
         case "$(get_distribution_release)" in
           "ubuntu18.04" | "ubuntu20.04" | "ubuntu22.04")
-            $SUDO apt-get -y install libuhd-dev libuhd4.4.0 uhd-host
+            $SUDO apt-get -y install libuhd-dev libuhd4.5.0 uhd-host
             ;;
         esac
     elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then

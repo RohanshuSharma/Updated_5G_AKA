@@ -66,10 +66,12 @@ void nr_DRB_preconfiguration(ue_id_t crntiMaybeUEid);
 bool nr_pdcp_remove_UE(ue_id_t ue_id);
 void nr_pdcp_reestablishment(ue_id_t ue_id);
 
+void nr_pdcp_suspend_srb(ue_id_t ue_id, int srb_id);
+void nr_pdcp_suspend_drb(ue_id_t ue_id, int drb_id);
 void nr_pdcp_reconfigure_srb(ue_id_t ue_id, int srb_id, long t_Reordering);
 void nr_pdcp_reconfigure_drb(ue_id_t ue_id, int drb_id, long t_Reordering);
-void nr_release_srb(ue_id_t ue_id, int srb_id);
-void nr_release_drb(ue_id_t ue_id, int drb_id);
+void nr_pdcp_release_srb(ue_id_t ue_id, int srb_id);
+void nr_pdcp_release_drb(ue_id_t ue_id, int drb_id);
 
 void add_srb(int is_gnb,
              ue_id_t rntiMaybeUEid,
@@ -123,6 +125,6 @@ void nr_pdcp_tick(int frame, int subframe);
 
 nr_pdcp_ue_manager_t *nr_pdcp_sdap_get_ue_manager();
 
-const bool nr_pdcp_get_statistics(ue_id_t ue_id, int srb_flag, int rb_id, nr_pdcp_statistics_t *out);
+bool nr_pdcp_get_statistics(ue_id_t ue_id, int srb_flag, int rb_id, nr_pdcp_statistics_t *out);
 
 #endif /* NR_PDCP_OAI_API_H */

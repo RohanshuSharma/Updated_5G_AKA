@@ -69,6 +69,8 @@ void *nrmac_stats_thread(void *arg) {
     p += print_meas_log(&gNB->schedule_dlsch, "dlsch scheduler", NULL, NULL, p, end - p);
     p += print_meas_log(&gNB->rlc_data_req, "rlc_data_req", NULL, NULL, p, end - p);
     p += print_meas_log(&gNB->rlc_status_ind, "rlc_status_ind", NULL, NULL, p, end - p);
+    p += print_meas_log(&gNB->nr_srs_ri_computation_timer, "UL-RI computation time", NULL, NULL, p, end - p);
+    p += print_meas_log(&gNB->nr_srs_tpmi_computation_timer, "UL-TPMI computation time", NULL, NULL, p, end - p);
     fwrite(output, p - output, 1, file);
     fflush(file);
     sleep(1);
@@ -166,21 +168,15 @@ size_t dump_mac_stats(gNB_MAC_INST *gNB, char *output, size_t strlen, bool reset
                        UE->rnti,
                        stats->ulsch_total_bytes_scheduled, stats->ul.total_bytes);
 
-    for (int lc_id = 0; lc_id < 63; lc_id++) {
-      if (stats->dl.lc_bytes[lc_id] > 0)
-        output += snprintf(output,
-                           end - output,
-                           "UE %04x: LCID %d: %"PRIu64" bytes TX\n",
-                           UE->rnti,
-                           lc_id,
-                           stats->dl.lc_bytes[lc_id]);
-      if (stats->ul.lc_bytes[lc_id] > 0)
-        output += snprintf(output,
-                           end - output,
-                           "UE %04x: LCID %d: %"PRIu64" bytes RX\n",
-                           UE->rnti,
-                           lc_id,
-                           stats->ul.lc_bytes[lc_id]);
+    for (int i = 0; i < sched_ctrl->dl_lc_num; i++) {
+      int lc_id = sched_ctrl->dl_lc_ids[i];
+      output += snprintf(output,
+                         end - output,
+                         "UE %04x: LCID %d: TX %14"PRIu64" RX %14"PRIu64" bytes\n",
+                         UE->rnti,
+                         lc_id,
+                         stats->dl.lc_bytes[lc_id],
+                         stats->ul.lc_bytes[lc_id]);
     }
   }
   NR_SCHED_UNLOCK(&gNB->UE_info.mutex);

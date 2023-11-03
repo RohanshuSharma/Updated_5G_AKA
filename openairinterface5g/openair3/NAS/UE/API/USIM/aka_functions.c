@@ -39,6 +39,7 @@
 #include "aka_functions.h"
 #include "nas_log.h"
 #include <time.h>
+#include <stdio.h>
 
 /*-------------------------------------------------------------------
  *                            Algorithm f1
@@ -98,7 +99,6 @@ void f1    ( u8 k_pP[16], u8 rand_pP[16], u8 sqn_pP[6], u8 amf_pP[2],
   // Print or log the total execution time
   printf("Execution time to derive MAC: %.2f milliseconds\n", duration);
 
-
   return;
 } /* end of function f1 */
 
@@ -110,26 +110,21 @@ void f1    ( u8 k_pP[16], u8 rand_pP[16], u8 sqn_pP[6], u8 amf_pP[2],
  * confidentiality key CK, integrity key IK and anonymity key AK.
  *
  *-----------------------------------------------------------------*/
-
-// RAB edit start
 void f2345 ( u8 k_pP[16], u8 rand_pP[16],
-             u8 res_pP[8], u8 ck_pP[16], u8 ik_pP[16], u8 ak_pP[6], u8 mk_pP[8], u8 rk_pP[8],u8 sk_pP[8],u8 random_r_ue[8],const u8 op_c[16])
+             u8 res_pP[8], u8 ck_pP[16], u8 ik_pP[16], u8 ak_pP[6], u8 mk_pP[8], u8 rk_pP[8], u8 sk_pP[8], u8 random_r_ue[8],const u8 op_c[16])
 {
   u8 temp[16];
   u8 out[16];
   u8 rijndaelInput[16];
   u8 i;
-
   clock_t start_time, end_time, start_time2, end_time2;
   double cpu_time_used, cpu_time_used2;
 
-  
-
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : in k[0..15]=%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
             k_pP[0],k_pP[1],k_pP[2], k_pP[3], k_pP[4], k_pP[5], k_pP[6], k_pP[7],
             k_pP[8],k_pP[9],k_pP[10],k_pP[11],k_pP[12],k_pP[13],k_pP[14],k_pP[15]);
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : in rand[0..15]=%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
             rand_pP[0],rand_pP[1],rand_pP[2], rand_pP[3], rand_pP[4], rand_pP[5], rand_pP[6], rand_pP[7],
             rand_pP[8],rand_pP[9],rand_pP[10],rand_pP[11],rand_pP[12],rand_pP[13],rand_pP[14],rand_pP[15]);
@@ -164,14 +159,15 @@ void f2345 ( u8 k_pP[16], u8 rand_pP[16],
   for (i=0; i<6; i++)
     ak_pP[i] = out[i];
 
+  
   end_time = clock();
   cpu_time_used = ((double)(end_time - start_time) * 1000) / CLOCKS_PER_SEC; // Convert to milliseconds
   printf("Execution time for calculating AK and MK: %f milliseconds\n", cpu_time_used);
 
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : out f2 res[0..7]=%02X%02X%02X%02X%02X%02X%02X%02X",
             res_pP[0],res_pP[1],res_pP[2], res_pP[3], res_pP[4], res_pP[5], res_pP[6], res_pP[7]);
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : out f5 ak[0..5]=%02X%02X%02X%02X%02X%02X",
             ak_pP[0],ak_pP[1],ak_pP[2], ak_pP[3], ak_pP[4], ak_pP[5]);
 
@@ -190,7 +186,7 @@ void f2345 ( u8 k_pP[16], u8 rand_pP[16],
   for (i=0; i<16; i++)
     ck_pP[i] = out[i];
 
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : out f3 ck_pP[0..7]=%02X%02X%02X%02X%02X%02X%02X%02X",
             ck_pP[0],ck_pP[1],ck_pP[2], ck_pP[3], ck_pP[4], ck_pP[5], ck_pP[6], ck_pP[7]);
 
@@ -209,14 +205,14 @@ void f2345 ( u8 k_pP[16], u8 rand_pP[16],
   for (i=0; i<16; i++)
     ik_pP[i] = out[i];
 
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : out f4 ik_pP[0..15]=%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
             ik_pP[0],ik_pP[1],ik_pP[2], ik_pP[3], ik_pP[4], ik_pP[5], ik_pP[6], ik_pP[7],
             ik_pP[8],ik_pP[9],ik_pP[10],ik_pP[11],ik_pP[12],ik_pP[13],ik_pP[14],ik_pP[15]);
 
-start_time2 = clock();
+  start_time2 = clock();
 
- RijndaelKeySchedule( ak_pP );
+  RijndaelKeySchedule( ak_pP );
 
   for (i=0; i<16; i++)
     rijndaelInput[i] = random_r_ue[i] ^ op_c[i]; //generated random r needed to be used.
@@ -250,24 +246,22 @@ printf("Execution time for calculating SK and RK: %f milliseconds\n", cpu_time_u
 
 
 void f2345_usim ( u8 k_pP[16], u8 rand_pP[16],
-             u8 res_pP[8], u8 ck_pP[16], u8 ik_pP[16], u8 ak_pP[6], u8 mk_pP[8], u8 rk_pP[8],u8 sk_pP[8],const u8 op_c[16])
+             u8 res_pP[8], u8 ck_pP[16], u8 ik_pP[16], u8 ak_pP[6],const u8 op_c[16])
 {
   u8 temp[16];
   u8 out[16];
   u8 rijndaelInput[16];
   u8 i;
-  clock_t start_time, end_time, start_time2, end_time2;
-  double cpu_time_used, cpu_time_used2;
 
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : in k[0..15]=%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
             k_pP[0],k_pP[1],k_pP[2], k_pP[3], k_pP[4], k_pP[5], k_pP[6], k_pP[7],
             k_pP[8],k_pP[9],k_pP[10],k_pP[11],k_pP[12],k_pP[13],k_pP[14],k_pP[15]);
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : in rand[0..15]=%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
             rand_pP[0],rand_pP[1],rand_pP[2], rand_pP[3], rand_pP[4], rand_pP[5], rand_pP[6], rand_pP[7],
             rand_pP[8],rand_pP[9],rand_pP[10],rand_pP[11],rand_pP[12],rand_pP[13],rand_pP[14],rand_pP[15]);
-start_time = clock();
+
   RijndaelKeySchedule( k_pP );
 
   for (i=0; i<16; i++)
@@ -290,21 +284,13 @@ start_time = clock();
   for (i=0; i<8; i++)
     res_pP[i] = out[i+8];
 
-  for (i=0; i<8; i++)
-    mk_pP[i] = out[i+8];
-
   for (i=0; i<6; i++)
     ak_pP[i] = out[i];
-  
-  end_time = clock();
-  cpu_time_used = ((double)(end_time - start_time) * 1000) / CLOCKS_PER_SEC; // Convert to milliseconds
-  printf("Execution time for calculating AK and MK: %f milliseconds\n", cpu_time_used)
 
-
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : out f2 res[0..7]=%02X%02X%02X%02X%02X%02X%02X%02X",
             res_pP[0],res_pP[1],res_pP[2], res_pP[3], res_pP[4], res_pP[5], res_pP[6], res_pP[7]);
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : out f5 ak[0..5]=%02X%02X%02X%02X%02X%02X",
             ak_pP[0],ak_pP[1],ak_pP[2], ak_pP[3], ak_pP[4], ak_pP[5]);
 
@@ -323,7 +309,7 @@ start_time = clock();
   for (i=0; i<16; i++)
     ck_pP[i] = out[i];
 
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : out f3 ck_pP[0..7]=%02X%02X%02X%02X%02X%02X%02X%02X",
             ck_pP[0],ck_pP[1],ck_pP[2], ck_pP[3], ck_pP[4], ck_pP[5], ck_pP[6], ck_pP[7]);
 
@@ -342,46 +328,12 @@ start_time = clock();
   for (i=0; i<16; i++)
     ik_pP[i] = out[i];
 
-  LOG_TRACE(INFO,
+  LOG_TRACE(DEBUG,
             "USIM-API  - f2345 : out f4 ik_pP[0..15]=%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
             ik_pP[0],ik_pP[1],ik_pP[2], ik_pP[3], ik_pP[4], ik_pP[5], ik_pP[6], ik_pP[7],
             ik_pP[8],ik_pP[9],ik_pP[10],ik_pP[11],ik_pP[12],ik_pP[13],ik_pP[14],ik_pP[15]);
-
-start_time2 = clock();
-
- RijndaelKeySchedule( ak_pP );
-
-  for (i=0; i<16; i++)
-    rijndaelInput[i] = rand_pP[i] ^ op_c[i]; //generated random r needed to be used.
-
-  RijndaelEncrypt( rijndaelInput, temp );
-
-  /* To obtain output block OUT2: XOR OPc and TEMP,    *
-   * rotate by r2=0, and XOR on the constant c2 (which *
-   * is all zeroes except that the last bit is 1).     */
-  for (i=0; i<16; i++)
-    rijndaelInput[i] = temp[i] ^ op_c[i];
-  rijndaelInput[15] ^= 1;
-  RijndaelEncrypt( rijndaelInput, out );
-
-  for (i=0; i<16; i++)
-    out[i] ^= op_c[i];
-
-
-  for (i=0; i<8; i++)
-    rk_pP[i] = out[i+8];
-
-  for (i=0; i<8; i++)
-    sk_pP[i] = out[i];
-end_time2 = clock();
-cpu_time_used2 = ((double)(end_time2 - start_time2) * 1000) / CLOCKS_PER_SEC;
-printf("Execution time for calculating SK and RK: %f milliseconds\n", cpu_time_used2);
-
-
   return;
 } /* end of function f2345 */
-
-// RAB edit stop
 
 /*-------------------------------------------------------------------
  *                            Algorithm f1*

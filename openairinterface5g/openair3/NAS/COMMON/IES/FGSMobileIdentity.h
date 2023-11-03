@@ -65,9 +65,8 @@ typedef struct {
   uint8_t  protectionschemeId:4;
   uint8_t  homenetworkpki;
 
-  //RAB edit start
   uint8_t  random_r[8];
-  // RAB edit stop
+  
   char schemeoutput[32];
 } Suci5GSMobileIdentity_t;
 

@@ -644,7 +644,9 @@ static void nr_uci_encoding(uint64_t payload,
     b[7] = b[0];
     AssertFatal(nrofPRB<=16,"Number of PRB >16\n");
   } else if (A>=12) {
-    AssertFatal(A<65,"Polar encoding not supported yet for UCI with more than 64 bits\n");
+    // Encoder reversal
+    payload = reverse_bits(payload, A);
+
     polar_encoder_fast(&payload, b, 0,0,
                        NR_POLAR_UCI_PUCCH_MESSAGE_TYPE, 
                        A, 
@@ -757,7 +759,10 @@ void nr_generate_pucch2(const PHY_VARS_NR_UE *ue,
 
   for (int l=0; l<pucch_pdu->nr_of_symbols; l++) {
     // c_init calculation according to TS38.211 subclause
-    x2 = (((1<<17)*((14*nr_slot_tx) + (l+startingSymbolIndex) + 1)*((2*pucch_pdu->dmrs_scrambling_id) + 1)) + (2*pucch_pdu->dmrs_scrambling_id))%(1U<<31); 
+    uint64_t temp_x2 = 1ll << 17;
+    temp_x2 *= 14UL * nr_slot_tx + l + startingSymbolIndex + 1;
+    temp_x2 *= 2UL * pucch_pdu->dmrs_scrambling_id + 1;
+    x2 = (temp_x2 + 2UL * pucch_pdu->dmrs_scrambling_id) % (1UL << 31);
 
     int reset = 1;
     for (int ii=0; ii<=(startingPRB>>2); ii++) {

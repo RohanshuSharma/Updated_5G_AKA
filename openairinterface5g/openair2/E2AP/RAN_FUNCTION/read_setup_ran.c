@@ -19,28 +19,24 @@
  *      contact@openairinterface.org
  */
 
-#ifndef BYTE_ARRAY_H 
-#define BYTE_ARRAY_H 
-
-/* WARNING: This file is also defined at XXXXX. Both files need to be completely equal. Same applies for *.c */
-
-#include <stdbool.h>
-#include <stdint.h>
+#include "read_setup_ran.h"
+#include "../../E2AP/flexric/src/lib/e2ap/e2ap_node_component_config_add_wrapper.h"
+#include "../../E2AP/flexric/test/rnd/fill_rnd_data_e2_setup_req.h"
+#include <assert.h>
 #include <stdlib.h>
 
-typedef struct {
-  size_t len;
-  uint8_t* buf;
-} byte_array_t;
+void read_setup_ran(void* data)
+{
+  assert(data != NULL);
+#ifdef E2AP_V1
 
-typedef struct {
-  uint8_t buf[32];
-} byte_array_32_t;
-
-byte_array_t copy_byte_array(byte_array_t src);
-void free_byte_array(byte_array_t ba);
-bool eq_byte_array(const byte_array_t* m0, const byte_array_t* m1);
-
-byte_array_t cp_str_to_ba(const char* str);
-
+#elif defined(E2AP_V2) || defined(E2AP_V3) 
+  *((e2ap_node_component_config_add_t*)data) = fill_e2ap_node_component_config_add();
+#else
+  static_assert(0!=0, "Unknown E2AP version");
 #endif
+
+}
+
+
+

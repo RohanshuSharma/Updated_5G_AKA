@@ -2570,7 +2570,8 @@ void nr_csirs_scheduling(int Mod_idP, frame_t frame, sub_frame_t slot, int n_slo
           dl_tti_csirs_pdu->PDUSize = (uint8_t)(2+sizeof(nfapi_nr_dl_tti_csi_rs_pdu));
 
           nfapi_nr_dl_tti_csi_rs_pdu_rel15_t *csirs_pdu_rel15 = &dl_tti_csirs_pdu->csi_rs_pdu.csi_rs_pdu_rel15;
-
+          csirs_pdu_rel15->bwp_size = dl_bwp->BWPSize;
+          csirs_pdu_rel15->bwp_start = dl_bwp->BWPStart;
           csirs_pdu_rel15->subcarrier_spacing = dl_bwp->scs;
           if (dl_bwp->cyclicprefix)
             csirs_pdu_rel15->cyclic_prefix = *dl_bwp->cyclicprefix;
@@ -2750,6 +2751,14 @@ static void nr_mac_apply_cellgroup(gNB_MAC_INST *mac, NR_UE_info_t *UE, frame_t 
 
     if (LOG_DEBUGFLAG(DEBUG_ASN1))
       xer_fprint(stdout, &asn_DEF_NR_CellGroupConfig, (const void *)UE->CellGroup);
+
+    /* remove the rlc_BearerToReleaseList, we don't need it anymore */
+    if (UE->CellGroup->rlc_BearerToReleaseList != NULL) {
+      struct NR_CellGroupConfig__rlc_BearerToReleaseList *l = UE->CellGroup->rlc_BearerToReleaseList;
+      asn_sequence_del(&l->list, l->list.count, /* free */1);
+      free(UE->CellGroup->rlc_BearerToReleaseList);
+      UE->CellGroup->rlc_BearerToReleaseList = NULL;
+    }
   }
 
   NR_ServingCellConfigCommon_t *scc = mac->common_channels[0].ServingCellConfigCommon;
@@ -2908,8 +2917,11 @@ void send_initial_ul_rrc_message(gNB_MAC_INST *mac, int rnti, const uint8_t *sdu
   uint8_t du2cu[1024];
   int encoded = encode_cellGroupConfig(UE->CellGroup, du2cu, sizeof(du2cu));
 
+  DevAssert(mac->f1_config.setup_req != NULL);
+  AssertFatal(mac->f1_config.setup_req->num_cells_available == 1, "can handle only one cell\n");
   const f1ap_initial_ul_rrc_message_t ul_rrc_msg = {
-    /* TODO: add mcc, mnc, cell_id, ..., is not available at MAC yet */
+    .plmn = mac->f1_config.setup_req->cell[0].info.plmn,
+    .nr_cellid = mac->f1_config.setup_req->cell[0].info.nr_cellid,
     .gNB_DU_ue_id = rnti,
     .crnti = rnti,
     .rrc_container = (uint8_t *) sdu,

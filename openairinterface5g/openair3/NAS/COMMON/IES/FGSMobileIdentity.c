@@ -226,12 +226,8 @@ static int encode_suci_5gs_mobile_identity(Suci5GSMobileIdentity_t *suci, uint8_
   encoded++;
 
 
-  // RAB edit start 
-
   memcpy(buffer + encoded, &(suci->random_r), sizeof(suci->random_r));
   encoded += sizeof(suci->random_r);
-
-  //RAB edit stop
 
   char *ptr=suci->schemeoutput;
   while ( ptr < suci->schemeoutput+strlen(suci->schemeoutput) ) {

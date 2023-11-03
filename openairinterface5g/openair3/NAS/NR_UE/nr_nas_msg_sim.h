@@ -93,6 +93,8 @@ typedef struct {
   Guti5GSMobileIdentity_t *guti;
   clock_t start_time;
   clock_t end_time;
+  clock_t comm_start_time;
+  clock_t comm_end_time;
   uint8_t random_r_ue[8];
 } nr_ue_nas_t;
 
@@ -128,6 +130,9 @@ typedef union {
   fgs_security_mode_complete_msg         fgs_security_mode_complete;
   registration_complete_msg              registration_complete;
   fgs_uplink_nas_transport_msg           uplink_nas_transport;
+  //clock_t comm_start_time;
+  //clock_t comm_end_time;
+ // clock_t comm_end_time;
 } MM_msg;
 
 

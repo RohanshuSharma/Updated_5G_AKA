@@ -33,12 +33,10 @@
 #include <string.h> // memset
 #include <stdlib.h> // malloc, free
 
-//RAB edit Start
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
 #include <openssl/sha.h>
-//RAB edit stop
 
 #include "nas_log.h"
 #include "TLVDecoder.h"
@@ -139,15 +137,12 @@ static int fill_suci(FGSMobileIdentity *mi, const uicc_t *uicc)
   mi->suci.mccdigit1 = uicc->imsiStr[0] - '0';
   mi->suci.mccdigit2 = uicc->imsiStr[1] - '0';
   mi->suci.mccdigit3 = uicc->imsiStr[2] - '0';
-  //RAB edit Start
+
   uint8_t random_r[8];
   generate_random_r(random_r);
   memcpy(mi->suci.random_r, random_r, sizeof(mi->suci.random_r));
 
 
- 
-
-  // RAB edit stop
   memcpy(mi->suci.schemeoutput, uicc->imsiStr + 3 + uicc->nmc_size, strlen(uicc->imsiStr) - (3 + uicc->nmc_size));
   return sizeof(Suci5GSMobileIdentity_t);
 }
@@ -306,7 +301,6 @@ void derive_kausf(uint8_t ck[16], uint8_t ik[16], uint8_t sqn[6], uint8_t kausf[
 }
 
 void derive_kseaf(uint8_t kausf[32], uint8_t kseaf[32], uicc_t *uicc) {
-
   uint8_t S[100]={0};
   uint8_t hk_key[32];
   clock_t start_time = clock();
@@ -319,13 +313,14 @@ void derive_kseaf(uint8_t kausf[32], uint8_t kseaf[32], uicc_t *uicc) {
   byte_array_t data = {.buf = S , .len = 3 + netNamesize};
   kdf(kausf, data, 32, kseaf);
 
- S[0] = 0x7D; // Adjusted FC for hk_key derivation
- kdf(kseaf, data, 32, hk_key);
+  S[0] = 0x7D; // Adjusted FC for hk_key derivation
+  kdf(kseaf, data, 32, hk_key);
   clock_t end_time = clock();
   double duration = ((double)(end_time - start_time)) / CLOCKS_PER_SEC * 1000.0;
 
   // Print or log the total execution time
   printf("Execution Time to generate HK and Kseaf: %.2f milliseconds\n", duration);
+
 }
 
 void derive_kamf(uint8_t *kseaf, uint8_t *kamf, uint16_t abba, uicc_t* uicc) {
@@ -413,11 +408,15 @@ void derive_ue_keys(uint8_t *buf, nr_ue_nas_t *nas) {
   for(int index = 0; index < 16;index++){
     rand[index] = buf[8+index];
   }
+  nas->comm_end_time = clock();
+  double duration_comm = ((double)(nas->comm_end_time - nas->comm_start_time)) / CLOCKS_PER_SEC * 1000.0;
+  printf("Total Communication time taken: %.2f milliseconds\n", duration_comm);
+  
 
   uint8_t resTemp[16];
   uint8_t ck[16], ik[16];
   uint8_t mk[8],rk[8],sk[8];
-  f2345(nas->uicc->key, rand, resTemp, ck, ik, ak,mk,rk,sk,nas->random_r_ue, nas->uicc->opc);
+  f2345(nas->uicc->key, rand, resTemp, ck, ik, ak, mk, rk, sk, nas->random_r_ue, nas->uicc->opc);
 
   transferRES(ck, ik, resTemp, rand, output, nas->uicc);
 
@@ -459,6 +458,7 @@ void derive_ue_keys(uint8_t *buf, nr_ue_nas_t *nas) {
   nas->end_time = clock();
   double duration = ((double)(nas->end_time - nas->start_time)) / CLOCKS_PER_SEC * 1000.0;
   printf("Total Execution time taken: %.2f milliseconds\n", duration);
+
 }
 
 nr_ue_nas_t *get_ue_nas_info(module_id_t module_id)
@@ -493,10 +493,11 @@ void generateRegistrationRequest(as_nas_info_t *initialNasMsg, nr_ue_nas_t *nas)
   if(nas->guti){
     size += fill_guti(&mm_msg->registration_request.fgsmobileidentity, nas->guti);
   } else {
+    nas->start_time = clock();
     size += fill_suci(&mm_msg->registration_request.fgsmobileidentity, nas->uicc);
     memcpy(nas->random_r_ue, mm_msg->registration_request.fgsmobileidentity.suci.random_r, sizeof(nas->random_r_ue));
-    nas->start_time = clock();
-    printf("2 of 3 RAB");
+    
+
   }
 
 #if 0
@@ -527,6 +528,8 @@ void generateRegistrationRequest(as_nas_info_t *initialNasMsg, nr_ue_nas_t *nas)
   initialNasMsg->length = mm_msg_encode(mm_msg, (uint8_t*)(initialNasMsg->data), size);
   registration_request_len = initialNasMsg->length;
 
+  nas->comm_start_time = clock();
+
 }
 
 void generateIdentityResponse(as_nas_info_t *initialNasMsg, uint8_t identitytype, uicc_t* uicc) {
@@ -551,7 +554,6 @@ void generateIdentityResponse(as_nas_info_t *initialNasMsg, uint8_t identitytype
   size += 1;
   if(identitytype == FGS_MOBILE_IDENTITY_SUCI){
     size += fill_suci(&mm_msg->fgs_identity_response.fgsmobileidentity, uicc);
-    printf("3 of 3 RAB");
   }
 
   // encode the message
