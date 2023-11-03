@@ -199,7 +199,7 @@ services:
             timeout: 5s
             retries: 5
        # ports:
-        #    - 143.167.97.11:4043:4043
+        #    - 143.167.97.51:4043:4043
 
     oai-nr-ue2:
         image: oaisoftwarealliance/oai-nr-ue:develop

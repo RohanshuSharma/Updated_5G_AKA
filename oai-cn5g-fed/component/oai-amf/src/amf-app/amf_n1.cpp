@@ -2218,9 +2218,6 @@ void amf_n1::authentication_response_handle(
     const uint32_t ran_ue_ngap_id, const long amf_ue_ngap_id,
     bstring plain_msg) {
   std::shared_ptr<nas_context> nc = {};
-  nc->comm_end_time = clock();
-  double duration2 = (double)(nc->comm_end_time - nc->comm_start_time) / CLOCKS_PER_SEC * 1000.0;
-  Logger::amf_n1().debug("Communication time taken: %.2f milliseconds", duration2);
   if (!is_amf_ue_id_2_nas_context(amf_ue_ngap_id, nc)) {
     Logger::amf_n1().error(
         "No existed NAS context for UE with amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT,
@@ -2261,6 +2258,9 @@ void amf_n1::authentication_response_handle(
       // Calculate HRES* from received RES*, then compare with XRES stored in
       // nas_context
       if (hxresStar) {
+          nc->comm_end_time = clock();
+          double duration2 = (double)(nc->comm_end_time - nc->comm_start_time) / CLOCKS_PER_SEC * 1000.0;
+          Logger::amf_n1().debug("Communication time taken: %.2f milliseconds", duration2);
         uint8_t inputstring[32];
         uint8_t* res = (uint8_t*) bdata(resStar);
         Logger::amf_n1().debug("Start to calculate HRES* from received RES*");
